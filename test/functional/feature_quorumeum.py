@@ -7,6 +7,7 @@
 import importlib.machinery
 import importlib.util
 import logging
+import tempfile
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.messages import ser_compact_size
 
@@ -33,6 +34,12 @@ class QuorumeumTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.setup_clean_chain = True
 
+    def add_options(self, parser):
+        parser.add_argument(
+            "--generate_and_quit", action='store_true', dest="generate_and_quit",
+            help="Instead of running the test, generate keys and signet params for a new Quorumeum",
+            default=False)
+
     def setup_network(self):
         # Override setup_network and setup_nodes
         # Because the second node will be on a different signet chain
@@ -48,10 +55,12 @@ class QuorumeumTest(BitcoinTestFramework):
         self.keypairs = self.get_extended_key_pairs()
         self.multisig_descriptors = self.get_multisig_descriptors()
         self.signet_challenge = self.get_signet_challenge()
-        self.switch_nodes()
-        self.mine_block_internal_key()
-        self.mine_block_multisig()
-
+        if self.options.generate_and_quit:
+            self.generate_and_quit()
+        else:
+            self.switch_nodes()
+            self.mine_block_internal_key()
+            self.mine_block_multisig()
 
     def create_wallets(self):
         self.log.info(f"Creating {KEYS} wallets")
@@ -110,6 +119,14 @@ class QuorumeumTest(BitcoinTestFramework):
         program = wallet0.getaddressinfo(address=key0_addr)["scriptPubKey"]
         self.log.info(f"scriptPubKey (signet challenge): {program}")
         return program
+
+    def generate_and_quit(self):
+        with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as f:
+            f.write(f"Signet challenge:\n\t{self.signet_challenge}\n")
+            f.write(f"Descriptors:\n")
+            for desc in self.multisig_descriptors:
+                f.write(f"{desc}\n")
+            self.log.info(f"\nQuorumeum parameters file:\n{f.name}\n")
 
     def switch_nodes(self):
         self.log.info("Starting a node on the new Quorumeum Signet chain")
