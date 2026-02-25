@@ -10,7 +10,10 @@ build_bitcoind(){
 	sleep 5
 	cmake -B build -DBUILD_TESTS=OFF -DWITH_ZMQ=ON
 	cd build
-	local ncores="$(lscpu | grep 'per cluster' | awk '{print $4}')"
+	local ncores="$(($(lscpu | grep 'per cluster' | awk '{print $4}')-1))"
+	if [ 1 -gt "${ncores}" ]; then
+		ncores=1
+	fi
 	printf "Detected ${ncores} cpu cores\n"
 	make -j ${ncores} 2>&1
 	printf 'Build finished successfully!\n'
