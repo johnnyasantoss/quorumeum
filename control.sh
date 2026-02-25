@@ -2,7 +2,7 @@
 ####################
 set -e
 ####################
-readonly HELP_MSG='usage: < build | up | down | onion_addr >'
+readonly HELP_MSG='usage: < build | up | down | onion-addr >'
 readonly RELDIR="$(dirname ${0})"
 ####################
 eprintln(){
