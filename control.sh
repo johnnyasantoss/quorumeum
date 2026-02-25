@@ -18,6 +18,8 @@ check_env() {
 	source "${RELDIR}/.env"
 	! [ -z "${SIGNETCHALLENGE}" ] || eprintln 'undefined env SIGNETCHALLENGE'
 	! [ -z "${ADDNODE}" ] || eprintln 'undefined env ADDNODE'
+	! [ -z "${FEDERATION_MULTISIG}" ] || eprintln 'undefined env FEDERATION_MULTISIG'
+	! [ -z "${FEDERATION_PRIVATEKEY}" ] || eprintln 'undefined env FEDERATION_PRIVATEKEY'
 }
 mkdirs(){
 	mkdir -p ${RELDIR}/data/.bitcoin
@@ -33,6 +35,8 @@ bind=0.0.0.0
 addnode=${ADDNODE}	
 proxy=127.0.0.1:9050
 datadir=/data/.bitcoin
+federation_multisig=${FEDERATION_MULTISIG}
+federation_privatekey=${FEDERATION_PRIVATEKEY}
 EOF
 }
 set_container_engine(){
