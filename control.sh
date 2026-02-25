@@ -71,7 +71,7 @@ up(){
 		-v=${RELDIR}:/app \
 		-v="${RELDIR}/data:/data" \
 		--name="${CT_NAME:-bitcoin}" \
-		"localhost/${IMG_NAME:-bitcoin}" &
+		"${IMG_NAME:-bitcoin}" &
 }
 down(){
 	${CE} exec ${CT_NAME:-bitcoin} /app/scripts/shutdown.sh || true
