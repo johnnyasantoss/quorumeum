@@ -161,8 +161,8 @@ The `signetpsbt` message (cmdString: "signetpsbt", v2 transport ID: 30) relays P
 - Handler: `ProcessSignetPsbt()` in `src/net_processing.cpp`
 
 ### Key Files for signetpsbt Implementation
-- `src/signetpsbt.h` - SignetPsbtMessage struct with serialization, SigningSessionManager
-- `src/signetpsbt.cpp` - ProcessSignetPsbt() handler and relay logic
+- `src/signetpsbt.h` - SignetPsbtMessage struct, SigningSessionManager, QuorumeumManager
+- `src/signetpsbt.cpp` - ProcessSignetPsbt() handler and relay logic, InitQuorumeum()
 - `src/net_processing.cpp` - ProcessSignetPsbt() call site (lines ~4926)
 - `src/node/context.h` - NodeContext fields: federation_key, federation_descriptor, signing_session
 - `src/protocol.h` - NetMsgType::SIGNETPSBT registration (line 66)
@@ -176,9 +176,8 @@ The `signetpsbt` message (cmdString: "signetpsbt", v2 transport ID: 30) relays P
 - `federation_descriptor` - Descriptor for the federation (10-of-100 Taproot multisig)
 - `signing_session` - SigningSessionManager for active signet PSBT signing sessions
 
-### Legacy Global Variables
-- `g_descriptor` - Legacy global for federation descriptor (use NodeContext instead)
-- `g_connman` - Network connection manager
+### QuorumeumManager (in src/signetpsbt.h)
+Global manager for federation state. Use `InitQuorumeum()` to initialize from NodeContext fields.
 
 ### Docker/TOR Setup
 ```bash
@@ -193,11 +192,11 @@ When a new block is found during a signing session, all current signing sessions
 ### AGENTS.md Maintenance Policy
 When implementing significant federation-related changes, always update this file:
 - **New configuration options**: Add to "New Configuration Options" section
-- **New NodeContext fields**: Update "NodeContext Fields" section  
+- **New NodeContext fields**: Update "NodeContext Fields" section
 - **New P2P messages**: Update "New P2P Message" section with format details
 - **Key files**: Update "Key Files for signetpsbt Implementation" section
-- **Global variables**: Update "Legacy Global Variables" section
-- **Protocol changes**: Update "Signet PSBT Protocol" section or create new QIP section
+
+- **Protocol changes**: Create new QIP section
 
 Use `[federation]` prefix for all federation-related logs in C++ code.
 
