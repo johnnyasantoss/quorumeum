@@ -450,9 +450,6 @@ private:
 
 extern ArgsManager gArgs;
 
-struct Descriptor;  // Forward declaration
-extern std::unique_ptr<Descriptor> g_descriptor;
-
 /**
  * @return true if help has been requested via a command-line arg
  */

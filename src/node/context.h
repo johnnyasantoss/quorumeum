@@ -12,6 +12,8 @@
 #include <thread>
 #include <vector>
 
+#include <signetpsbt.h>
+
 class ArgsManager;
 class AddrMan;
 class BanMan;
@@ -92,6 +94,10 @@ struct NodeContext {
     std::unique_ptr<node::Warnings> warnings;
     //! Federation extended private key for signet block signing (nullptr on non-signet chains)
     std::unique_ptr<CExtKey> federation_key;
+    //! Descriptor for the federation (multisig 10-of-100)
+    std::unique_ptr<Descriptor> federation_descriptor;
+    //! Signing session manager for active signet PSBT signing sessions
+    std::unique_ptr<SigningSessionManager> signing_session;
     std::thread background_init_thread;
 
     //! Declare default constructor and destructor that are not inline, so code
