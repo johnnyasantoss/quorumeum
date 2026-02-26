@@ -161,16 +161,23 @@ The `signetpsbt` message (cmdString: "signetpsbt", v2 transport ID: 30) relays P
 - Handler: `ProcessSignetPsbt()` in `src/net_processing.cpp`
 
 ### Key Files for signetpsbt Implementation
-- `src/signetpsbt.h` - SignetPsbtMessage struct with serialization
-- `src/net_processing.cpp` - ProcessSignetPsbt() handler (lines ~4934)
+- `src/signetpsbt.h` - SignetPsbtMessage struct with serialization, SigningSessionManager
+- `src/signetpsbt.cpp` - ProcessSignetPsbt() handler and relay logic
+- `src/net_processing.cpp` - ProcessSignetPsbt() call site (lines ~4926)
+- `src/node/context.h` - NodeContext fields: federation_key, federation_descriptor, signing_session
 - `src/protocol.h` - NetMsgType::SIGNETPSBT registration (line 66)
 - `src/net.cpp` - V2_MESSAGE_IDS array (index 30)
 - `src/script/descriptor.h` - Descriptor class for federation keys
 - `test/functional/p2p_signetpsbt.py` - Functional test
 - `src/test/signetpsbt_tests.cpp` - Unit tests
 
-### Global Variables
-- `g_descriptor` - Singleton providing federation public keys via `GetPubKeys()`
+### NodeContext Fields (in src/node/context.h)
+- `federation_key` - Extended private key for signing blocks (CExtKey)
+- `federation_descriptor` - Descriptor for the federation (10-of-100 Taproot multisig)
+- `signing_session` - SigningSessionManager for active signet PSBT signing sessions
+
+### Legacy Global Variables
+- `g_descriptor` - Legacy global for federation descriptor (use NodeContext instead)
 - `g_connman` - Network connection manager
 
 ### Docker/TOR Setup
@@ -182,6 +189,17 @@ The `signetpsbt` message (cmdString: "signetpsbt", v2 transport ID: 30) relays P
 
 ### Surrender Policy
 When a new block is found during a signing session, all current signing sessions are dropped. Check block height in block template to detect new blocks.
+
+### AGENTS.md Maintenance Policy
+When implementing significant federation-related changes, always update this file:
+- **New configuration options**: Add to "New Configuration Options" section
+- **New NodeContext fields**: Update "NodeContext Fields" section  
+- **New P2P messages**: Update "New P2P Message" section with format details
+- **Key files**: Update "Key Files for signetpsbt Implementation" section
+- **Global variables**: Update "Legacy Global Variables" section
+- **Protocol changes**: Update "Signet PSBT Protocol" section or create new QIP section
+
+Use `[federation]` prefix for all federation-related logs in C++ code.
 
 ### TODO Format
 Use clear TODO comments for incomplete features:
