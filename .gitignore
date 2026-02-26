@@ -30,3 +30,4 @@ data
 **/*.swp
 .env
 .cache
+bitcoin.conf
