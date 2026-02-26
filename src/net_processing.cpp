@@ -4923,7 +4923,7 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
     }
 
     if (msg_type == NetMsgType::SIGNETPSBT) {
-        ProcessSignetPsbt(pfrom, vRecv);
+        ProcessSignetPsbt(pfrom, vRecv, m_chainman);
         return;
     }
 
