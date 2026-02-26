@@ -72,6 +72,7 @@
 #include <script/descriptor.h>
 #include <script/signingprovider.h>
 #include <script/sigcache.h>
+#include <signetpsbt.h>
 #include <sync.h>
 #include <torcontrol.h>
 #include <txdb.h>
@@ -1377,7 +1378,7 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
         }
 
         node.federation_key = std::make_unique<CExtKey>(extkey);
-        LogInfo("Federation private key loaded and stored.");
+        LogInfo("[federation] Federation private key loaded and stored.");
     }
 
     auto opt_max_upload = ParseByteUnits(args.GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET), ByteUnit::M);
@@ -1405,8 +1406,9 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
              if (descs.empty()) {
                  return InitError(Untranslated(strprintf("Invalid -descriptor '%s': %s", descriptor_str, parse_error)));
              }
-             g_descriptor = std::move(descs.front());
-             LogInfo("Descriptor initialized successfully");
+             node.federation_descriptor = std::move(descs.front());
+             node.signing_session = std::make_unique<SigningSessionManager>();
+             LogInfo("[federation] Descriptor initialized successfully");
          }
      }
 

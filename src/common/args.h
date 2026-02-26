@@ -450,7 +450,7 @@ private:
 
 extern ArgsManager gArgs;
 
-struct Descriptor;  // Forward declaration
+struct Descriptor;
 extern std::unique_ptr<Descriptor> g_descriptor;
 
 /**
