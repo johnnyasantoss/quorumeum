@@ -1408,6 +1408,7 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
              }
              node.federation_descriptor = std::move(descs.front());
              node.signing_session = std::make_unique<SigningSessionManager>();
+             InitQuorumeum(node.federation_descriptor.get(), node.signing_session.get());
              LogInfo("[federation] Descriptor initialized successfully");
          }
      }

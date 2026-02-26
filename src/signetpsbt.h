@@ -52,10 +52,26 @@ private:
     std::map<uint64_t, int> m_sessions;
 };
 
-std::optional<uint64_t> GetOurShortId(uint64_t nonce);
-bool ValidateSigners(const SignetPsbtMessage& msg, uint64_t nonce);
-bool HaveSigned(const SignetPsbtMessage& msg, uint64_t nonce);
+class QuorumeumManager {
+public:
+    QuorumeumManager();
 
+    void SetFederationDescriptor(Descriptor* descriptor);
+    void SetSigningSession(SigningSessionManager* session);
+
+    Descriptor* federation_descriptor() { return m_federation_descriptor; }
+    SigningSessionManager* signing_session() { return m_signing_session; }
+
+    std::optional<uint64_t> GetOurShortId(uint64_t nonce) const;
+    bool ValidateSigners(const SignetPsbtMessage& msg, uint64_t nonce) const;
+    bool HaveSigned(const SignetPsbtMessage& msg, uint64_t nonce) const;
+
+private:
+    Descriptor* m_federation_descriptor{nullptr};
+    SigningSessionManager* m_signing_session{nullptr};
+};
+
+void InitQuorumeum(Descriptor* descriptor, SigningSessionManager* session);
 void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv);
 
 #endif // BITCOIN_SIGNETPSBT_H

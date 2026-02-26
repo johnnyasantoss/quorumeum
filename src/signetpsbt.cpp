@@ -4,18 +4,17 @@
 
 #include <signetpsbt.h>
 
-#include <common/args.h>
 #include <crypto/siphash.h>
 #include <net.h>
 #include <protocol.h>
 
 #include <logging.h>
 
-#include <node/context.h>
-
 #include <script/descriptor.h>
 
 static constexpr int SIGNET_THRESHOLD = 10;
+
+static QuorumeumManager g_quorumeum;
 
 static uint64_t ComputeShortId(uint64_t nonce, const CPubKey& pubkey)
 {
@@ -24,45 +23,50 @@ static uint64_t ComputeShortId(uint64_t nonce, const CPubKey& pubkey)
     return hasher.Finalize();
 }
 
-static Descriptor* GetFederationDescriptor()
+QuorumeumManager::QuorumeumManager() = default;
+
+void QuorumeumManager::SetFederationDescriptor(Descriptor* descriptor)
 {
-    return g_descriptor.get();
+    m_federation_descriptor = descriptor;
 }
 
-std::optional<uint64_t> GetOurShortId(uint64_t nonce)
+void QuorumeumManager::SetSigningSession(SigningSessionManager* session)
 {
-    auto* descriptor = GetFederationDescriptor();
-    if (!descriptor) {
+    m_signing_session = session;
+}
+
+void InitQuorumeum(Descriptor* descriptor, SigningSessionManager* session)
+{
+    g_quorumeum.SetFederationDescriptor(descriptor);
+    g_quorumeum.SetSigningSession(session);
+}
+
+std::optional<uint64_t> QuorumeumManager::GetOurShortId(uint64_t nonce) const
+{
+    if (!m_federation_descriptor) {
         return std::nullopt;
     }
     std::set<CPubKey> pubkeys;
     std::set<CExtPubKey> ext_pubs;
-    descriptor->GetPubKeys(pubkeys, ext_pubs);
+    m_federation_descriptor->GetPubKeys(pubkeys, ext_pubs);
     if (pubkeys.empty()) {
         return std::nullopt;
     }
     return ComputeShortId(nonce, *pubkeys.begin());
 }
 
-static std::set<uint64_t> GetFederationShortIds(uint64_t nonce)
+bool QuorumeumManager::ValidateSigners(const SignetPsbtMessage& msg, uint64_t nonce) const
 {
-    std::set<uint64_t> short_ids;
-    auto* descriptor = GetFederationDescriptor();
-    if (!descriptor) {
-        return short_ids;
+    if (!m_federation_descriptor) {
+        return false;
     }
+    std::set<uint64_t> valid_short_ids;
     std::set<CPubKey> pubkeys;
     std::set<CExtPubKey> ext_pubs;
-    descriptor->GetPubKeys(pubkeys, ext_pubs);
+    m_federation_descriptor->GetPubKeys(pubkeys, ext_pubs);
     for (const auto& pubkey : pubkeys) {
-        short_ids.insert(ComputeShortId(nonce, pubkey));
+        valid_short_ids.insert(ComputeShortId(nonce, pubkey));
     }
-    return short_ids;
-}
-
-bool ValidateSigners(const SignetPsbtMessage& msg, uint64_t nonce)
-{
-    auto valid_short_ids = GetFederationShortIds(nonce);
     for (uint64_t sid : msg.signers_short_ids) {
         if (valid_short_ids.find(sid) == valid_short_ids.end()) {
             return false;
@@ -71,7 +75,7 @@ bool ValidateSigners(const SignetPsbtMessage& msg, uint64_t nonce)
     return true;
 }
 
-bool HaveSigned(const SignetPsbtMessage& msg, uint64_t nonce)
+bool QuorumeumManager::HaveSigned(const SignetPsbtMessage& msg, uint64_t nonce) const
 {
     auto our_short_id = GetOurShortId(nonce);
     if (!our_short_id) {
@@ -117,12 +121,12 @@ void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv)
     LogDebug(BCLog::NET, "[federation] signetpsbt: received nonce=%llu, psbt_size=%lu, block_template_size=%lu, signers_count=%lu from peer=%d\n",
         msg.nonce, msg.psbt.size(), msg.block_template.size(), msg.signers_short_ids.size(), pfrom.GetId());
 
-    if (HaveSigned(msg, msg.nonce)) {
+    if (g_quorumeum.HaveSigned(msg, msg.nonce)) {
         LogDebug(BCLog::NET, "[federation] signetpsbt: already signed, dropping message from peer=%d\n", pfrom.GetId());
         return;
     }
 
-    if (!ValidateSigners(msg, msg.nonce)) {
+    if (!g_quorumeum.ValidateSigners(msg, msg.nonce)) {
         LogPrintLevel(BCLog::NET, BCLog::Level::Warning, "[federation] signetpsbt: invalid signers, banning peer=%d\n", pfrom.GetId());
         return;
     }

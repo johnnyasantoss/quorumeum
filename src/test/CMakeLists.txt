@@ -58,7 +58,6 @@ add_executable(test_bitcoin
 #  merkle_tests.cpp
 #  merkleblock_tests.cpp
 miner_tests.cpp
-g_descriptor_tests.cpp
 #  miniminer_tests.cpp
 #  miniscript_tests.cpp
 #  minisketch_tests.cpp

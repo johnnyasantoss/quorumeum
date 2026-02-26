@@ -41,7 +41,6 @@ const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf";
 const char * const BITCOIN_SETTINGS_FILENAME = "settings.json";
 
 ArgsManager gArgs;
-std::unique_ptr<Descriptor> g_descriptor;
 
 /**
  * Interpret a string argument as a boolean.
