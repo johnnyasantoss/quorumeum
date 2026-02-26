@@ -33,6 +33,14 @@ public:
     }
 };
 
-void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv);
+class CBlock;
+class ChainstateManager;
+namespace Consensus { struct Params; }
+
+std::vector<uint8_t> ExtractSignetSolution(const PartiallySignedTransaction& psbtx);
+bool EmbedSignetSolution(CBlock& block, const std::vector<uint8_t>& signet_solution);
+bool GrindBlock(CBlock& block, const Consensus::Params& consensus_params);
+
+void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv, ChainstateManager& chainman);
 
 #endif // BITCOIN_SIGNETPSBT_H
