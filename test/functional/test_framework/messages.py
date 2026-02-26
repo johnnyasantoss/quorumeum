@@ -1906,6 +1906,51 @@ class msg_sendtxrcncl:
         return "msg_sendtxrcncl(version=%lu, salt=%lu)" %\
             (self.version, self.salt)
 
+class msg_signetpsbt:
+    __slots__ = ("nonce", "psbt", "block_template", "signers_short_ids")
+    msgtype = b"signetpsbt"
+
+    def __init__(self, nonce=0, psbt=b"", block_template=b"", signers_short_ids=None):
+        self.nonce = nonce
+        self.psbt = psbt
+        self.block_template = block_template
+        self.signers_short_ids = signers_short_ids if signers_short_ids else []
+
+    def deserialize(self, f):
+        self.nonce = int.from_bytes(f.read(8), "little")
+        psbt_length = deser_varint(f)
+        self.psbt = f.read(psbt_length)
+        block_template_length = deser_varint(f)
+        self.block_template = f.read(block_template_length)
+        signers_short_ids_length = deser_varint(f)
+        self.signers_short_ids = [
+            int.from_bytes(f.read(8), "little") for _ in range(signers_short_ids_length)
+        ]
+
+    def serialize(self):
+        r = b""
+        r += self.nonce.to_bytes(8, "little")
+        r += ser_varint(len(self.psbt))
+        r += self.psbt
+        r += ser_varint(len(self.block_template))
+        r += self.block_template
+        r += ser_varint(len(self.signers_short_ids))
+        for sid in self.signers_short_ids:
+            r += sid.to_bytes(8, "little")
+        return r
+
+    def __repr__(self):
+        return (
+            "msg_signetpsbt(nonce=%lu, psbt_size=%lu, block_template_size=%lu, signers_count=%lu)"
+            % (
+                self.nonce,
+                len(self.psbt),
+                len(self.block_template),
+                len(self.signers_short_ids),
+            )
+        )
+
+
 class TestFrameworkScript(unittest.TestCase):
     def test_addrv2_encode_decode(self):
         def check_addrv2(ip, net):
