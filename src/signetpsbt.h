@@ -72,6 +72,6 @@ private:
 };
 
 void InitQuorumeum(Descriptor* descriptor, SigningSessionManager* session);
-void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv);
+bool ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv);
 
 #endif // BITCOIN_SIGNETPSBT_H

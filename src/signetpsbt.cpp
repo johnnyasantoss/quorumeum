@@ -113,7 +113,7 @@ bool SigningSessionManager::HasSession(uint64_t nonce) const
     return m_sessions.find(nonce) != m_sessions.end();
 }
 
-void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv)
+bool ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv)
 {
     SignetPsbtMessage msg;
     vRecv >> msg;
@@ -123,12 +123,12 @@ void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv)
 
     if (g_quorumeum.HaveSigned(msg, msg.nonce)) {
         LogDebug(BCLog::NET, "[federation] signetpsbt: already signed, dropping message from peer=%d\n", pfrom.GetId());
-        return;
+        return false;
     }
 
     if (!g_quorumeum.ValidateSigners(msg, msg.nonce)) {
-        LogPrintLevel(BCLog::NET, BCLog::Level::Warning, "[federation] signetpsbt: invalid signers, banning peer=%d\n", pfrom.GetId());
-        return;
+        LogPrintLevel(BCLog::NET, BCLog::Level::Warning, "[federation] signetpsbt: invalid signers from peer=%d\n", pfrom.GetId());
+        return true;
     }
 
     LogPrintLevel(BCLog::NET, BCLog::Level::Warning, "[federation] signetpsbt: Full signature-to-short_id mapping validation not implemented\n");
@@ -142,4 +142,5 @@ void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv)
     }
 
     // TODO: Surrender - drop sessions when block found
+    return false;
 }

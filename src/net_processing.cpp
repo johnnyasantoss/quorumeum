@@ -4923,7 +4923,9 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
     }
 
     if (msg_type == NetMsgType::SIGNETPSBT) {
-        ProcessSignetPsbt(pfrom, vRecv);
+        if (ProcessSignetPsbt(pfrom, vRecv)) {
+            Misbehaving(*peer, "invalid signers in signetpsbt message");
+        }
         return;
     }
 
