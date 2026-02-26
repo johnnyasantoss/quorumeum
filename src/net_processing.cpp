@@ -4922,8 +4922,6 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
         return;
     }
 
-    bool ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv);
-
     if (msg_type == NetMsgType::SIGNETPSBT) {
         ProcessSignetPsbt(pfrom, vRecv);
         return;
@@ -4932,38 +4930,6 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
     // Ignore unknown commands for extensibility
     LogDebug(BCLog::NET, "Unknown command \"%s\" from peer=%d\n", SanitizeString(msg_type), pfrom.GetId());
     return;
-}
-
-bool ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv)
-{
-    SignetPsbtMessage msg;
-    vRecv >> msg;
-
-    LogDebug(BCLog::NET, "signetpsbt: received nonce=%llu, psbt_size=%lu, block_template_size=%lu, signers_count=%lu from peer=%d\n",
-        msg.nonce, msg.psbt.size(), msg.block_template.size(), msg.signers_short_ids.size(), pfrom.GetId());
-
-    // TODO: Implement signing session management
-    // For now, we only handle relay and validation
-
-    // 1. Check if already signed - if our short_id is in the list, drop the message
-    // TODO: Get our pubkey from g_descriptor, compute short_id, check if in signers_short_ids
-
-    // 2. Validate signers: Verify every short ID matches a known federation member
-    // TODO: Get federation pubkeys from g_descriptor, compute expected short_ids, validate
-
-    // 3. Basic signature validation: Check signature count matches short_id count
-    // TODO: Parse PSBT to count signatures, compare with signers_short_ids.size()
-    // For now, just log a warning about the missing validation
-    LogPrintLevel(BCLog::NET, BCLog::Level::Warning, "signetpsbt: Full signature-to-short_id mapping validation not implemented\n");
-
-    // 4. Relay to other peers (flood-fill, exclude sender)
-    // TODO: Implement proper relay with g_connman
-
-    // 5. TODO: Sign PSBT and append short ID (requires signing infrastructure)
-    // 6. TODO: Block publication when threshold (10) reached
-    // 7. TODO: Surrender - drop sessions when block found
-
-    return true;
 }
 
 bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode& pnode, Peer& peer)

@@ -1,13 +1,15 @@
-// Copyright (c) 2026-present The Bitcoin Core developers
+// Copyright (c) 2026-present Quorumeum Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_SIGNETPSBT_H
 #define BITCOIN_SIGNETPSBT_H
 
+#include <net.h>
 #include <primitives/transaction.h>
 #include <psbt.h>
 #include <serialize.h>
+#include <streams.h>
 #include <uint256.h>
 
 #include <cstdint>
@@ -30,5 +32,7 @@ public:
         READWRITE(Using<VectorFormatter<DefaultFormatter>>(obj.signers_short_ids));
     }
 };
+
+void ProcessSignetPsbt(CNode& pfrom, DataStream& vRecv);
 
 #endif // BITCOIN_SIGNETPSBT_H
